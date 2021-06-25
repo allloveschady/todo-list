@@ -1,53 +1,56 @@
 <template>
-  <section class="todo-list">
-    <h1 class="todo-list__title">TODO LIST</h1>
-    <div class="todo-list-items">
-      <todo v-for="todo in todos" :todo="todo" />
+  <section class="page">
+    <h1 class="page__title">TODO LIST</h1>
+    <div class="page-todo-items">
+      <todo v-for="todo in todos" :todo="todo" :todos="todos"/>
     </div>
-    <form class="add-new-todo-form" v-if="isFormOpened" @click.self="setFormVisibility" @submit.prevent="saveTodo">
-      <div class="add-new-todo-form__content-wrapper">
-        <label for="new-todo">Add a todo</label>
-        <input
-            v-model="newTodoTitle"
-            id="new-todo"
-            placeholder="Todo title"
-        >
-        <div class="add-new-todo-form__row">
+    <transition name="fade">
+      <form class="add-new-todo-form" v-if="isFormOpened" @click.self="setFormVisibility" @submit.prevent="saveTodoList">
+        <div class="add-new-todo-form__content-wrapper">
+          <label for="new-todo">Add a todo</label>
           <input
-              v-model="newTodoItem"
-              placeholder="New todo item"
+              v-model="newTodoTitle"
+              id="new-todo"
+              placeholder="Todo title"
+              class="input"
           >
-          <div @click="addItemToNewTodo">Add</div>
+          <div class="add-new-todo-form__row">
+            <input
+                v-model="newTodoItem"
+                placeholder="New todo item"
+                class="input"
+            >
+            <div @click="addItemToNewTodo" class="buttons">Add</div>
+          </div>
+          <ul class="add-new-todo-form__new-todo-items todo-items-block">
+            <li class="add-new-todo-form__todo-item todo-items-block__todo-item" v-for="item in newTodoItems">
+              {{ item.name }}
+            </li>
+          </ul>
+          <button class="add-new-todo-form__button buttons">Save</button>
         </div>
-        <ul class="add-new-todo-form__new-todo-items todo-items-block">
-          <li class="add-new-todo-form__todo-item todo-items-block__todo-item" v-for="item in newTodoItems">{{ item }}</li>
-        </ul>
-        <button>save</button>
-      </div>
-    </form>
-    <div class="todo-list__add-new" @click="setFormVisibility"></div>
+      </form>
+    </transition>
+    <div class="page__add-new-todo" @click="setFormVisibility"></div>
   </section>
 </template>
 
 <script>
 import todo from '@/components/todo.vue'
+import {mixin} from "../mixins/mixin";
 
 export default {
   name: 'Home',
+  mixins: [mixin],
   components: {
     todo
   },
   data() {
     return {
-      isFormOpened: true,
+      isFormOpened: false,
       newTodoTitle: '',
       newTodoItem: '',
       newTodoItems: []
-    }
-  },
-  computed: {
-    todos() {
-      return this.$store.state.todos
     }
   },
   methods: {
@@ -56,19 +59,14 @@ export default {
     },
     addItemToNewTodo() {
       if (this.newTodoItem) {
-        this.newTodoItems.push(this.newTodoItem)
+        this.newTodoItems.push({name: this.newTodoItem, checked: false})
         this.newTodoItem = ''
       }
     },
-    saveTodo() {
+    saveTodoList() {
       if (this.newTodoTitle) {
-        //add new item to todos array
-        const todos = [...this.todos]
-        todos.push({ title: this.newTodoTitle, items: this.newTodoItems, id: todos.length })
-        //save final array to store
-        this.$store.commit('setTodoList', todos)
+        this.saveNewToStore(this.newTodoTitle, this.newTodoItems)
 
-        //cleanup and close form
         this.newTodoTitle = ''
         this.newTodoItem = ''
         this.newTodoItems = []
@@ -80,18 +78,14 @@ export default {
 </script>
 
 <style>
-.todo-list {
-  position: relative;
-  padding: 0 1rem;
-}
 
-.todo-list__title {
+.page__title {
   text-align: center;
   margin: 0;
   padding: .67em 0;
 }
 
-.todo-list__add-new {
+.page__add-new-todo {
   border-radius: 50%;
   background: #00EAFFFF;
   width: 50px;
@@ -105,10 +99,16 @@ export default {
   z-index: 1;
 }
 
-.todo-list__add-new::after {
+.page__add-new-todo::after {
   content: '+';
   color: white;
   font-size: 2rem;
+}
+
+.page-todo-items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
 }
 
 .add-new-todo-form {
@@ -136,9 +136,44 @@ export default {
   display: flex;
   flex-direction: column;
   align-items: center;
+  gap: 15px;
+}
+
+.todo-items-block {
+  margin: 0;
 }
 
 .add-new-todo-form__row {
   display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 10px;
+}
+.input {
+  padding: 10px 15px;
+  background-color: transparent;
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid lightgray;
+  border-radius: 10px;
+}
+.input:focus {
+  outline: none;
+}
+.add-new-todo-form__button {
+  background: transparent;
+  box-sizing: border-box;
+}
+
+@media (max-width: 1023px) {
+  .page-todo-items {
+    justify-content: center;
+  }
+}
+@media (max-width: 768px) {
+  .page__add-new-todo {
+    bottom: 20px;
+    right: 20px;
+  }
 }
 </style>

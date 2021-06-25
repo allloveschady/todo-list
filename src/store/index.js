@@ -6,7 +6,6 @@ Vue.use(Vuex)
 export default new Vuex.Store({
   state: {
     todos: [
-      { title: 'test1', items: ['asd', 'rtyr'], id: 1 }
     ]
   },
   mutations: {
@@ -15,6 +14,10 @@ export default new Vuex.Store({
     }
   },
   actions: {
+    saveTodos({commit}, todos) {
+      commit('setTodoList', todos)
+      localStorage.setItem('todos', JSON.stringify(todos))
+    }
   },
   modules: {
   }
